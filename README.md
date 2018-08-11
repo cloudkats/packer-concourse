@@ -45,14 +45,10 @@ Usage:
 
 ```json
 {
-  "concourse_version": "3.10.0",
-  "aws_secret_key": "XXXX",
-  "aws_region": "us-west-1",
+  "concourse_version": "3.14.1",
   "aws_instance_type": "t2.small",
-  "concourse_username": "wondermentapps",
-  "concourse_password": "XXXX",
+  "concourse_username": "admin",
   "postgress_username": "concourse",
-  "postgress_password": "XXXX",
   "postgress_host": "127.0.0.1"
 }
 ```
