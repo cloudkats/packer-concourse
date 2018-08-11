@@ -1,0 +1,19 @@
+[Unit]
+Description=Concourse CI process (ATC and TSA)
+# TODO pick different service when we move db
+After=postgresql.service
+
+[Service]
+User=root
+Restart=always
+EnvironmentFile=/etc/concourse/environment
+ExecStart=/bin/bash /usr/bin/concourse.start.sh
+RestartSec=30
+StartLimitInterval=350
+StartLimitBurst=10
+SuccessExitStatus=143
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

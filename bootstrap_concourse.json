@@ -1,0 +1,119 @@
+{
+  "_copyright": "2018, Cloud Kats",
+  "variables": {
+    "aws_access_key": "{{env `aws_access_key`}}",
+    "aws_ami_name": "concourse",
+    "aws_region": "{{env `aws_region`}}",
+    "aws_secret_key": "{{env `aws_secret_key`}}",
+    "aws_ssh_username": "ubuntu",
+    "concourse_version": "{{env `concourse_version`}}",
+    "os_short_arch": "x64",
+    "system_locale": "en_US",
+    "os_version": "ubuntu-xenial-16.04",
+    "owner": "devops@wondermentapps.com",
+    "concourse_username": "{{env `concourse_username`}}",
+    "concourse_password": "{{env `concourse_password`}}",
+    "postgress_username": "{{env `postgress_username`}}",
+    "postgress_password": "{{env `postgress_password`}}",
+    "postgress_host": "{{env `postgress_host`}}",
+    "postgress_db": "atc"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "{{user `aws_ssh_username`}}",
+      "associate_public_ip_address": true,
+      "ami_name":
+        "{{user `aws_ami_name_prefix`}}{{user `aws_ami_name`}}-{{user `concourse_version`}}-{{isotime \"02-Jan-2006[03_04_05]\"}}",
+      "ami_description":
+        "Single Instance Concourse with Postgress DB installed locally",
+      "disable_stop_instance": false,
+      "tags": {
+        "Name": "Concourse CI&CD",
+        "OS_Version": "{{user `os_version`}}",
+        "Release": "latest",
+        "Owner": "{{user `owner`}}",
+        "Creation_Date": "{{isotime \"02/Jan/2006[03:04:05]\"}}",
+        "Role": "concourse-ci"
+      },
+      "run_tags": {
+        "Name": "Concourse CI&CD [Packer]",
+        "OS_Version": "{{user `os_version`}}",
+        "Owner": "{{user `owner`}}"
+      },
+      "source_ami_filter": {
+        "filters": {
+          "architecture": "x86_64",
+          "name": "ubuntu/images/*{{user `os_version`}}-amd64-server-*",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "owners": ["099720109477"],
+        "most_recent": true
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "./files/",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline_shebang": "/bin/bash -e",
+      "environment_vars": ["DEBIAN_FRONTEND=noninteractive"],
+      "inline": [
+        "unset HISTFILE",
+        "history -cw",
+        "echo === Waiting for Cloud-Init ===",
+        "timeout 180 /bin/bash -c 'until stat /var/lib/cloud/instance/boot-finished &>/dev/null; do echo waiting...; sleep 6; done'",
+        "echo === All Done ===",
+        "ls -la /tmp",
+        "export LC_CTYPE=en_US.UTF-8",
+        "export LC_ALL=en_US.UTF-8",
+        "sed -i 's/__USERNAME__/{{user `concourse_username`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__PASSWORD__/{{user `concourse_password`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__PSQL_HOST__/{{user `postgress_host`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__PSQL_USER__/{{user `postgress_username`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__PSQL_PASSWORD__/{{user `postgress_password`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__DATABASE__/{{user `postgress_db`}}/g' /tmp/concourse.environment",
+        "sed -i 's/__PSQL_USER__/{{user `postgress_username`}}/g' /tmp/bootstrap.sh",
+        "sed -i 's/__PSQL_PASSWORD__/{{user `postgress_password`}}/g' /tmp/bootstrap.sh",
+        "sed -i 's/__PSQL_PASSWORD__/{{user `postgress_password`}}/g' /tmp/concourse.start.sh",
+        "sed -i 's/__DATABASE__/{{user `postgress_db`}}/g' /tmp/bootstrap.sh",
+        "echo ===============Run Bootstrap Script========================",
+        "cat /tmp/bootstrap.sh",
+        "chmod +x /tmp/bootstrap.sh",
+        "sudo /tmp/bootstrap.sh {{user `concourse_version`}}",
+        "echo -----------------Start Services-------------------",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl start concourse",
+        "sleep 30",
+        "status=`sudo systemctl status concourse`",
+        "echo $status",
+        "echo ",
+        "sudo systemctl enable concourse",
+        "echo === System Cleanup ===",
+        "sudo apt-get -y -qq --purge autoremove",
+        "sudo apt-get autoclean",
+        "sudo apt-get clean",
+        "sudo rm -f /root/.bash_history",
+        "sudo rm -f /home/{{user `aws_ssh_username`}}/.bash_history",
+        "sudo rm -f /var/log/wtmp",
+        "sudo rm -f /var/log/btmp",
+        "sudo rm -rf /var/log/installer",
+        "sudo rm -rf /var/lib/cloud/instances",
+        "sudo rm -rf /tmp/* /var/tmp/* /tmp/.*-unix",
+        "sudo find /var/cache -type f -delete",
+        "sudo find /var/log -type f | while read f; do echo -n '' | sudo tee $f > /dev/null; done;",
+        "sudo find /var/lib/apt/lists -not -name lock -type f -delete",
+        "sudo sync"
+      ]
+    }
+  ]
+}

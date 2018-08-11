@@ -1,0 +1,8 @@
+{
+  "concourse_version": "3.14.1",
+  "aws_instance_type": "t2.small",
+  "concourse_username": "admin",
+  "postgress_username": "concourse",
+  "postgress_host": "127.0.0.1",
+  "owner": "concourse@google.com"
+}
