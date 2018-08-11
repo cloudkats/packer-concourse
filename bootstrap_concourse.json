@@ -10,7 +10,7 @@
     "os_short_arch": "x64",
     "system_locale": "en_US",
     "os_version": "ubuntu-xenial-16.04",
-    "owner": "devops@wondermentapps.com",
+    "owner": "{{env `owner`}}",
     "concourse_username": "{{env `concourse_username`}}",
     "concourse_password": "{{env `concourse_password`}}",
     "postgress_username": "{{env `postgress_username`}}",
