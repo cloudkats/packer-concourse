@@ -37,7 +37,6 @@ In order to create the AMI using this packer template you need to provide a
 few options.
 
 ```bash
-Usage:
   make create_ami
 ```
 
