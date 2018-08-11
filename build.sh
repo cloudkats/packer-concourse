@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eoi
+set -euo pipefail
 : AWS_REGION
 
 if [ -z "${AWS_PROFILE:-}" ]; then
