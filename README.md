@@ -37,6 +37,8 @@ In order to create the AMI using this packer template you need to provide a
 few options.
 
 ```bash
+  export AWS_PROFILE=<AWS CLI profile that should be in `.aws` folder>
+  export AWS_REGION=<desired AWS region>
   make create_ami
 ```
 

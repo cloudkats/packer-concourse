@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euo
 : AWS_REGION
 
 if [ -z "${AWS_PROFILE:-}" ]; then
@@ -12,7 +12,6 @@ SCRIPT_DIR="$(cd "$(dirname "$([ `readlink "$0"` ] && echo "`readlink "$0"`" || 
 
 concourse_password=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c20)
 postgress_password=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c20)
-
 
 cat >$SCRIPT_DIR/vars.yml<<EOF
 concourse_password: $concourse_password
