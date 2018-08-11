@@ -38,7 +38,7 @@ few options.
 
 ```bash
 Usage:
-  ./build.sh
+  make create_ami
 ```
 
 #### `secrets.json` Options
